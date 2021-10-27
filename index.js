@@ -19,21 +19,21 @@ async function run() {
     try {
         await client.connect();
 
-
         // database and collection
         const database = client.db('crud_products');
-        const userCollections = database.collection('products');
+        const productsCollections = database.collection('products');
+        const orderCollections = database.collection('orders');
 
         // read data
         app.get('/products', async (req, res) => {
-            const cursor = await userCollections.find({}).toArray();
+            const cursor = await productsCollections.find({}).toArray();
             res.send(cursor);
         })
 
         // insert data
         app.post('/products', async (req, res) => {
             const product = req.body;
-            const result = await userCollections.insertOne(product);
+            const result = await productsCollections.insertOne(product);
 
             res.json(result);
         })
@@ -42,7 +42,7 @@ async function run() {
         app.delete('/products/product/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
-            const result = await userCollections.deleteOne(query);
+            const result = await productsCollections.deleteOne(query);
 
             res.json(result);
         })
@@ -51,7 +51,7 @@ async function run() {
         app.get('/products/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
-            const result = await userCollections.findOne(query);
+            const result = await productsCollections.findOne(query);
             res.send(result)
         })
 
@@ -68,10 +68,23 @@ async function run() {
                     quantity: updatedProduct.quantity
                 },
             };
-            const result = await userCollections.updateOne(filter, updateDoc, options)
+            const result = await productsCollections.updateOne(filter, updateDoc, options)
             console.log('updating', id)
-
             res.json(result)
+        })
+
+        // order
+        app.post('/buyProducts', async (req, res) => {
+            const orderProducts = req.body;
+            const result = await orderCollections.insertOne(orderProducts);
+            res.send(result)
+        })
+
+        // find order
+        app.get('/orders/:email', async (req, res) => {
+            const email = req.params.email;
+            const result = await orderCollections.find({ email: email }).toArray();
+            res.send(result)
         })
 
     }
